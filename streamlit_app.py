@@ -44,10 +44,10 @@ def login():
         else:
             st.error("Invalid password")
 
-def calculate_remaining_hours():
+def calculate_remaining_hours(paid_hours):
     hourly_entries = [entry for entry in TIME_DATA if entry['hourlyPay']]
     total_hours = sum(entry['hours'] for entry in hourly_entries)
-    remaining_hours = total_hours - PAID_HOURS
+    remaining_hours = total_hours - paid_hours
     return total_hours, remaining_hours
 
 def format_time_period():
@@ -173,16 +173,41 @@ def dashboard():
     
     with col1:
         st.subheader("Payment Summary")
-        total_hours, remaining_hours = calculate_remaining_hours()
+        
+        # Add number input for paid hours
+        paid_hours = st.number_input(
+            "Enter number of hours already paid:", 
+            min_value=0.0, 
+            value=float(PAID_HOURS),
+            step=0.5,
+            help="Update this value when you make payments"
+        )
+        
+        total_hours, remaining_hours = calculate_remaining_hours(paid_hours)
         
         summary_container = st.container()
         with summary_container:
             st.markdown("##### Hourly Pay Structure ($4/hour)")
-            st.markdown(f"**Total Hours Worked:** {total_hours:.2f} hours")
-            st.markdown(f"**Hours Already Paid:** {PAID_HOURS} hours (${PAID_HOURS * HOURLY_RATE:.2f})")
-            st.markdown(f"**Remaining Hours to Pay:** {remaining_hours:.2f} hours")
+            
+            # Total hours
+            st.markdown(f"**Total Hours Worked:** {total_hours:.2f} hours (${total_hours * HOURLY_RATE:.2f})")
+            
+            # Paid amount (in green)
+            st.markdown(f"<div style='color: #28a745'>**✓ Hours Already Paid:** {paid_hours} hours (${paid_hours * HOURLY_RATE:.2f})</div>", unsafe_allow_html=True)
+            
+            # Remaining amount (in red)
+            remaining_hours = total_hours - paid_hours
+            st.markdown(f"<div style='color: #dc3545'>**○ Remaining Hours to Pay:** {remaining_hours:.2f} hours</div>", unsafe_allow_html=True)
+            
+            # Total remaining amount
             st.markdown("---")
-            st.markdown(f"**Amount Still Owed:** ${remaining_hours * HOURLY_RATE:.2f}")
+            st.markdown(f"<div style='color: #dc3545; font-size: 1.2em'>**Amount Still Owed:** ${remaining_hours * HOURLY_RATE:.2f}</div>", unsafe_allow_html=True)
+            
+            # Payment progress bar
+            if total_hours > 0:
+                progress = (paid_hours / total_hours) * 100
+                st.progress(progress / 100)
+                st.markdown(f"Payment Progress: {progress:.1f}%")
 
     with col2:
         st.subheader("Detailed Time Breakdown")
