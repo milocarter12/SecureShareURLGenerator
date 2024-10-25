@@ -18,8 +18,8 @@ TIME_DATA = [
     {"date": "10/21", "hours": 9.55, "day": "Mon", "formattedTime": "9:33", "hourlyPay": True},
     {"date": "10/22", "hours": 2.33, "day": "Tue", "formattedTime": "2:20", "hourlyPay": True},
     {"date": "10/23", "hours": 4.4, "day": "Wed", "formattedTime": "4:24", "hourlyPay": True},
-    {"date": "10/24", "hours": 4.77, "day": "Thu", "formattedTime": "4:46", "hourlyPay": False},
-    {"date": "10/25", "hours": 3.02, "day": "Fri", "formattedTime": "3:01", "hourlyPay": False}
+    {"date": "10/24", "hours": 4.77, "day": "Thu", "formattedTime": "4:46", "hourlyPay": True},
+    {"date": "10/25", "hours": 3.02, "day": "Fri", "formattedTime": "3:01", "hourlyPay": True}
 ]
 
 # Constants
@@ -61,9 +61,34 @@ def format_time_period():
     else:
         return date.strftime('%Y')
 
+def filter_data_by_period(df):
+    current_date = st.session_state.current_date
+    df['datetime'] = pd.to_datetime(df['date'] + '/2024', format='%m/%d/%Y')
+    
+    if st.session_state.view_type == 'weekly':
+        start_date = current_date - timedelta(days=current_date.weekday())
+        end_date = start_date + timedelta(days=6)
+        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
+    elif st.session_state.view_type == 'monthly':
+        start_date = current_date.replace(day=1)
+        if current_date.month == 12:
+            end_date = current_date.replace(year=current_date.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            end_date = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
+        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
+    else:  # yearly
+        start_date = current_date.replace(month=1, day=1)
+        end_date = current_date.replace(month=12, day=31)
+        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
+    
+    return df[mask]
+
 def create_time_chart(df):
+    # Filter data based on current view
+    filtered_df = filter_data_by_period(df.copy())
+    
     fig = px.bar(
-        df,
+        filtered_df,
         x='date',
         y='hours',
         color='hourlyPay',
@@ -140,8 +165,7 @@ def dashboard():
                 cols = st.columns([3, 2])
                 with cols[0]:
                     st.markdown(f"**{entry['day']} {entry['date']}**")
-                    st.markdown(f"{entry['formattedTime']}" + 
-                              (" (Performance Based)" if not entry['hourlyPay'] else ""))
+                    st.markdown(f"{entry['formattedTime']}")
                 with cols[1]:
                     if entry['hourlyPay']:
                         st.markdown(f"**${entry['hours'] * HOURLY_RATE:.2f}**")
