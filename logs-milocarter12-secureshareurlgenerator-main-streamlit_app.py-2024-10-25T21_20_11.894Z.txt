@@ -1,0 +1,195 @@
+
+[     UTC     ] Logs for secureshareurlgenerator-aqf596ekfu8gbajcxzswby.streamlit.app/
+────────────────────────────────────────────────────────────────────────────────────────
+[21:15:51] 🚀 Starting up repository: 'secureshareurlgenerator', branch: 'main', main module: 'streamlit_app.py'
+[21:15:51] 🐙 Cloning repository...
+[21:15:51] 🐙 Cloning into '/mount/src/secureshareurlgenerator'...
+
+[21:15:51] 🐙 Cloned repository!
+[21:15:51] 🐙 Pulling code changes from Github...
+[21:15:52] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Resolved 49 packages in 462ms
+Downloaded 49 packages in 5.06s
+Installed 49 packages in 649ms
+ + altair==5.4.1
+ + attrs==24.2.0
+ + blinker==1.8.2
+ + cachetools==5.5.0
+ + certifi==2024.8.30
+ + charset-normalizer==3.4.0
+ + click==8.1.7
+ + flask==3.0.1
+ + gitdb==4.0.11
+ + gitpython==3.1.43
+ + idna==3.10
+ + importlib-metadata==7.2.1
+ + itsdangerous==2.2.0
+ + jinja2==3.1.4
+ + jsonschema==4.23.0
+ + jsonschema-specifications==2024.10.1
+ + markdown-it-py==3.0.0
+ + markupsafe==3.0.2
+ + mdurl==0.1.2
+ + narwhals==1.10.0
+ + numpy==1.26.4
+ + packaging==23.2
+ + pandas==2.1.4
+ + pillow==10.4.0
+ [2024-10-25 21:15:58.886916] + plotly==5.18.0
+ + protobuf==4.25.5
+ + pyarrow==17.0.0
+ + pydeck==0.9.1
+ + pygments==2.18.0
+ + python-dateutil==2.9.0.post0
+ + pytz==2024.2
+ + referencing[2024-10-25 21:15:58.887183] ==0.35.1
+ + requests==2.32.3
+ + rich==13.9.3
+ + rpds-py==0.20.0
+ + six==1.16.0
+ + smmap==5.0.1
+ + streamlit[2024-10-25 21:15:58.887404] ==1.31.0
+ + tenacity==8.5.0
+ + toml==0.10.2
+ + tornado==6.4.1
+ + typing-extensions==4.12.2
+ + tzdata==2024.2
+ + tzlocal==5.2
+ [2024-10-25 21:15:58.887587] + urllib3==2.2.3
+ + validators==0.34.0
+ + watchdog==5.0.3
+ + werkzeug==3.0.6
+ + zipp==3.20.2
+Checking if Streamlit is installed
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/lib/column_types.py:385: SyntaxWarning: invalid escape sequence '\.'
+  """Configure a text column in ``st.dataframe`` or ``st.data_editor``.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/lib/column_types.py:480: SyntaxWarning: invalid escape sequence '\.'
+  """Configure a link column in ``st.dataframe`` or ``st.data_editor``.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/layouts.py:485: SyntaxWarning: invalid escape sequence '\.'
+  """Insert a status container to display output from long-running tasks.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/widgets/button.py:440: SyntaxWarning: invalid escape sequence '\.'
+  """Display a link to another page in a multipage app or to an external page.
+Found Streamlit version 1.31.0 in the environment
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[21:16:03] 🐍 Python dependencies were installed from /mount/src/secureshareurlgenerator/requirements.txt using uv.
+[21:16:03] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/secureshareurlgenerator/requirements.txt, poetry /mount/src/secureshareurlgenerator/pyproject.toml. Used: uv with /mount/src/secureshareurlgenerator/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[21:16:05] 📦 Processed dependencies!
+
+
+
+[21:16:10] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
+[21:16:17] 🐙 Pulling code changes from Github...
+[21:16:17] 📦 Processing dependencies...
+[21:16:17] 📦 Processed dependencies!
+[21:16:20] 🔄 Updated app!
+  Stopping...
+[21:17:41] ❗️ Streamlit server consistently failed status checks
+[21:17:41] ❗️ Please fix the errors, push an update to the git repo, or reboot the app.
+[21:18:53] 🐙 Pulling code changes from Github...
+[21:18:53] 📦 Processing dependencies...
+[21:18:53] 📦 Processed dependencies!
+
+
+
+[21:18:57] 🔄 Updated app!
+[21:18:58] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
+[21:19:13] 🖥 Provisioning machine...
+[21:19:15] 🎛 Preparing system...
+[21:19:15] ⛓ Spinning up manager process...
+[21:19:17] 🖥 Provisioning machine...
+[21:19:23] 🎛 Preparing system...
+[21:19:28] ⛓ Spinning up manager process...
+[21:19:35] 🎈 Inflating balloons...
+[21:19:18] 🚀 Starting up repository: 'secureshareurlgenerator', branch: 'main', main module: 'streamlit_app.py'
+[21:19:18] 🐙 Cloning repository...
+[21:19:18] 🐙 Cloning into '/mount/src/secureshareurlgenerator'...
+
+[21:19:18] 🐙 Cloned repository!
+[21:19:18] 🐙 Pulling code changes from Github...
+[21:19:19] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Resolved 49 packages in 370ms
+Downloaded 49 packages in 4.41s
+Installed 49 packages in 685ms
+ + altair==5.4.1
+ + attrs==24.2.0
+ + blinker==1.8.2[2024-10-25 21:19:25.227321] 
+ + cachetools==5.5.0
+ + certifi==2024.8.30
+ + charset-normalizer==3.4.0
+ + click==8.1.7
+ + flask==3.0.1
+ + gitdb==4.0.11
+ + gitpython==3.1.43
+ + idna==3.10
+ + importlib-metadata==7.2.1
+ + itsdangerous==2.2.0
+ + jinja2==3.1.4
+ + jsonschema==4.23.0
+ + jsonschema-specifications==2024.10.1
+ + markdown-it-py==3.0.0
+ + markupsafe==3.0.2
+ + mdurl==0.1.2
+ +[2024-10-25 21:19:25.227595]  narwhals==1.10.0
+ + numpy==1.26.4
+ + packaging==23.2
+ + pandas==2.1.4
+ + pillow==10.4.0
+ + plotly==5.18.0
+ + protobuf==4.25.5
+ + pyarrow==17.0.0
+ + pydeck==0.9.1
+ + pygments[2024-10-25 21:19:25.227813] ==2.18.0
+ + python-dateutil==2.9.0.post0
+ + pytz==2024.2
+ + referencing==0.35.1
+ + requests==2.32.3
+ + rich==13.9.3
+ + rpds-py==0.20.0
+ + six==1.16.0[2024-10-25 21:19:25.227999] 
+ + smmap==5.0.1
+ + streamlit==1.31.0
+ + tenacity==8.5.0
+ + toml==0.10.2
+ + [2024-10-25 21:19:25.228372] tornado==6.4.1
+ + typing-extensions==4.12.2
+ + tzdata==2024.2
+ + tzlocal==5.2
+ + urllib3[2024-10-25 21:19:25.228561] ==2.2.3
+ + validators==0.34.0
+ + watchdog==5.0.3
+ + werkzeug==3.0.6
+ + zipp==3.20.2[2024-10-25 21:19:25.228754] 
+Checking if Streamlit is installed
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/lib/column_types.py:385: SyntaxWarning: invalid escape sequence '\.'
+  """Configure a text column in ``st.dataframe`` or ``st.data_editor``.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/lib/column_types.py:480: SyntaxWarning: invalid escape sequence '\.'
+  """Configure a link column in ``st.dataframe`` or ``st.data_editor``.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/layouts.py:485: SyntaxWarning: invalid escape sequence '\.'
+  """Insert a status container to display output from long-running tasks.
+/home/adminuser/venv/lib/python3.12/site-packages/streamlit/elements/widgets/button.py:440: SyntaxWarning: invalid escape sequence '\.'
+  """Display a link to another page in a multipage app or to an external page.
+Found Streamlit version 1.31.0 in the environment
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[21:19:29] 🐍 Python dependencies were installed from /mount/src/secureshareurlgenerator/requirements.txt using uv.
+[21:19:29] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/secureshareurlgenerator/requirements.txt, poetry /mount/src/secureshareurlgenerator/pyproject.toml. Used: uv with /mount/src/secureshareurlgenerator/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[21:19:30] 📦 Processed dependencies!
+
+
+
+[21:19:35] ❗️ The service has encountered an error while checking the health of the Streamlit app: Get "http://localhost:8501/healthz": dial tcp 127.0.0.1:8501: connect: connection refused
