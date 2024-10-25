@@ -17,9 +17,20 @@ document.addEventListener('DOMContentLoaded', function() {
     let timeChart;
 
     function parseDate(dateStr) {
+        if (!dateStr) return null;
         const [month, day] = dateStr.split('/');
         const year = new Date().getFullYear();
         return new Date(year, parseInt(month) - 1, parseInt(day));
+    }
+
+    function formatDate(date) {
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${month}/${day}`;
+    }
+
+    function getDayName(date) {
+        return date.toLocaleDateString('en-US', { weekday: 'short' });
     }
 
     function isSameDay(date1, date2) {
@@ -37,31 +48,113 @@ document.addEventListener('DOMContentLoaded', function() {
         return date1.getFullYear() === date2.getFullYear();
     }
 
-    function getWeekStart(date) {
-        const newDate = new Date(date);
-        newDate.setDate(date.getDate() - date.getDay());
-        return newDate;
+    function getWeekDates(date) {
+        const week = [];
+        const start = new Date(date);
+        start.setDate(date.getDate() - date.getDay()); // Start from Sunday
+
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(start);
+            currentDate.setDate(start.getDate() + i);
+            week.push({
+                date: formatDate(currentDate),
+                day: getDayName(currentDate)
+            });
+        }
+        return week;
     }
 
-    function isInSameWeek(date1, date2) {
-        const week1 = getWeekStart(date1);
-        const week2 = getWeekStart(date2);
-        return isSameDay(week1, week2);
+    function getMonthDates(date) {
+        const month = [];
+        const start = new Date(date.getFullYear(), date.getMonth(), 1);
+        const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            month.push({
+                date: formatDate(new Date(d)),
+                day: getDayName(new Date(d))
+            });
+        }
+        return month;
     }
 
-    function aggregateDataByPeriod(data, period) {
+    function getYearMonths(date) {
+        const months = [];
+        const year = date.getFullYear();
+        
+        for (let month = 0; month < 12; month++) {
+            const currentDate = new Date(year, month, 1);
+            months.push({
+                date: formatDate(currentDate),
+                month: currentDate.toLocaleString('default', { month: 'short' })
+            });
+        }
+        return months;
+    }
+
+    function findDataForDate(date, data) {
+        return data.find(entry => entry.date === date) || {
+            hourlyHours: 0,
+            performanceHours: 0,
+            wordCount: 0
+        };
+    }
+
+    function getChartData() {
+        let dateEntries;
+        let labels;
+
+        switch(currentViewType) {
+            case 'weekly':
+                dateEntries = getWeekDates(currentDate);
+                labels = dateEntries.map(d => `${d.date}\n${d.day}`);
+                break;
+            case 'monthly':
+                dateEntries = getMonthDates(currentDate);
+                labels = dateEntries.map(d => d.date);
+                break;
+            case 'yearly':
+                dateEntries = getYearMonths(currentDate);
+                labels = dateEntries.map(d => d.month);
+                break;
+            default:
+                dateEntries = getWeekDates(currentDate);
+                labels = dateEntries.map(d => `${d.date}\n${d.day}`);
+        }
+
+        // Aggregate existing data
+        const aggregatedData = aggregateDataByPeriod(timeData, currentViewType);
+        
+        // Map data to all dates in the period
+        const mappedData = dateEntries.map(entry => {
+            const existingData = findDataForDate(entry.date, aggregatedData);
+            return {
+                date: entry.date,
+                hourlyHours: existingData.hourlyHours,
+                performanceHours: existingData.performanceHours,
+                wordCount: existingData.wordCount
+            };
+        });
+
+        return {
+            labels,
+            hourlyHours: mappedData.map(d => d.hourlyHours || null),
+            performanceHours: mappedData.map(d => d.performanceHours || null),
+            wordCounts: mappedData.map(d => d.wordCount || 0)
+        };
+    }
+
+    function aggregateDataByPeriod(data, viewType) {
         const aggregated = {};
         
         data.forEach(entry => {
             const entryDate = parseDate(entry.date);
-            let key;
+            if (!entryDate) return;
+
+            let key = entry.date;
             
-            if (period === 'month') {
-                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}-${entryDate.getDate()}`;
-            } else if (period === 'year') {
-                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}`;
-            } else {
-                key = entry.date;
+            if (viewType === 'yearly') {
+                key = formatDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), 1));
             }
 
             if (!aggregated[key]) {
@@ -69,8 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     date: key,
                     hourlyHours: 0,
                     performanceHours: 0,
-                    wordCount: 0,
-                    day: entry.day
+                    wordCount: 0
                 };
             }
 
@@ -84,14 +176,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aggregate word count data
         wordCountData.forEach(entry => {
             const entryDate = parseDate(entry.date);
-            let key;
+            if (!entryDate) return;
+
+            let key = entry.date;
             
-            if (period === 'month') {
-                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}-${entryDate.getDate()}`;
-            } else if (period === 'year') {
-                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}`;
-            } else {
-                key = entry.date;
+            if (viewType === 'yearly') {
+                key = formatDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), 1));
             }
 
             if (aggregated[key]) {
@@ -100,50 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         return Object.values(aggregated);
-    }
-
-    function getChartData() {
-        let filteredData = timeData.filter(entry => {
-            const entryDate = parseDate(entry.date);
-            
-            switch(currentViewType) {
-                case 'weekly':
-                    return isInSameWeek(entryDate, currentDate);
-                case 'monthly':
-                    return isSameMonth(entryDate, currentDate);
-                case 'yearly':
-                    return isSameYear(entryDate, currentDate);
-                default:
-                    return true;
-            }
-        });
-
-        // Aggregate data based on view type
-        const aggregatedData = aggregateDataByPeriod(
-            filteredData, 
-            currentViewType === 'yearly' ? 'year' : 
-            currentViewType === 'monthly' ? 'month' : 'week'
-        );
-
-        // Sort data by date
-        aggregatedData.sort((a, b) => parseDate(a.date) - parseDate(b.date));
-
-        return {
-            labels: aggregatedData.map(d => {
-                const date = parseDate(d.date);
-                switch(currentViewType) {
-                    case 'yearly':
-                        return new Date(date).toLocaleDateString('en-US', { month: 'short' });
-                    case 'monthly':
-                        return new Date(date).toLocaleDateString('en-US', { day: 'numeric' });
-                    default:
-                        return `${d.date}\n${d.day}`;
-                }
-            }),
-            hourlyHours: aggregatedData.map(d => d.hourlyHours || null),
-            performanceHours: aggregatedData.map(d => d.performanceHours || null),
-            wordCounts: aggregatedData.map(d => d.wordCount || 0)
-        };
     }
 
     function updateChart() {
@@ -193,9 +239,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         callbacks: {
                             label: function(context) {
                                 if (context.dataset.label !== 'Word Count') {
-                                    return `${context.formattedValue} hours`;
+                                    return `${context.formattedValue || '0'} hours`;
                                 }
-                                return `${context.formattedValue} words`;
+                                return `${context.formattedValue || '0'} words`;
                             }
                         }
                     }
@@ -308,12 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateWordCountSummary();
         updateWordCountLogs();
     });
-
-    function formatDate(date) {
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${month}/${day}`;
-    }
 
     function updateWordCountSummary() {
         const summary = document.getElementById('wordCountSummary');
