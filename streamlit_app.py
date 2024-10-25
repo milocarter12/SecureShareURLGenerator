@@ -61,65 +61,50 @@ def format_time_period():
     else:
         return date.strftime('%Y')
 
-def generate_date_range(start_date, end_date):
-    dates = pd.date_range(start=start_date, end=end_date)
-    return pd.DataFrame({
-        'datetime': dates,
-        'date': dates.strftime('%m/%d'),
-        'hours': 0,
-        'hourlyPay': True,
-        'day': dates.strftime('%a'),
-        'formattedTime': '0:00'
-    })
-
 def filter_data_by_period(df):
     current_date = st.session_state.current_date
     df['datetime'] = pd.to_datetime(df['date'] + '/2024', format='%m/%d/%Y')
     
+    # Generate date range based on view type
     if st.session_state.view_type == 'weekly':
         start_date = current_date - timedelta(days=current_date.weekday())
         end_date = start_date + timedelta(days=6)
     elif st.session_state.view_type == 'monthly':
         start_date = current_date.replace(day=1)
-        if current_date.month == 12:
-            end_date = current_date.replace(year=current_date.year + 1, month=1, day=1) - timedelta(days=1)
-        else:
-            end_date = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
-    else:  # yearly
+        end_date = (start_date.replace(month=start_date.month % 12 + 1, day=1) - timedelta(days=1))
+    else:
         start_date = current_date.replace(month=1, day=1)
         end_date = current_date.replace(month=12, day=31)
     
-    # Generate complete date range
-    date_range_df = generate_date_range(start_date, end_date)
-    
-    # Merge with existing data, using 0 for missing values
-    result = pd.merge(date_range_df, df, 
-                     on=['date'], 
-                     how='left')
-    
-    # Rename columns to remove suffixes
-    result = result.rename(columns={
-        'hours_x': 'hours',
-        'hourlyPay_x': 'hourlyPay',
-        'formattedTime_x': 'formattedTime',
-        'datetime_x': 'datetime'
-    })
-    
-    # Fill missing values
-    result = result.fillna({
+    # Create complete date range DataFrame
+    dates = pd.date_range(start=start_date, end=end_date)
+    date_range_df = pd.DataFrame({
+        'date': dates.strftime('%m/%d'),
+        'day': dates.strftime('%a'),
         'hours': 0,
         'hourlyPay': True,
         'formattedTime': '0:00'
     })
     
-    # Use the day from date_range_df
-    result['day'] = result['day_x']
-    result = result.drop(['day_x', 'day_y', 'datetime_y', 'hours_y', 'hourlyPay_y', 'formattedTime_y'], axis=1)
+    # Merge with existing data
+    result = pd.merge(
+        date_range_df,
+        df[['date', 'hours', 'hourlyPay', 'formattedTime']],
+        on='date',
+        how='left'
+    )
+    
+    # Use coalesce to prefer existing data over defaults
+    result['hours'] = result['hours_y'].fillna(result['hours_x'])
+    result['hourlyPay'] = result['hourlyPay_y'].fillna(result['hourlyPay_x'])
+    result['formattedTime'] = result['formattedTime_y'].fillna(result['formattedTime_x'])
+    
+    # Drop unnecessary columns and reset index
+    result = result.drop(columns=[col for col in result.columns if col.endswith('_x') or col.endswith('_y')])
     
     return result
 
 def create_time_chart(df):
-    # Filter data based on current view
     filtered_df = filter_data_by_period(df.copy())
     
     fig = px.bar(
@@ -132,7 +117,6 @@ def create_time_chart(df):
         title='Time Overview'
     )
     
-    # Update layout to show all x-axis labels
     fig.update_layout(
         showlegend=False,
         xaxis_tickangle=-45,
