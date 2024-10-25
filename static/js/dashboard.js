@@ -16,6 +16,136 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('timeChart').getContext('2d');
     let timeChart;
 
+    function parseDate(dateStr) {
+        const [month, day] = dateStr.split('/');
+        const year = new Date().getFullYear();
+        return new Date(year, parseInt(month) - 1, parseInt(day));
+    }
+
+    function isSameDay(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getDate() === date2.getDate();
+    }
+
+    function isSameMonth(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth();
+    }
+
+    function isSameYear(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear();
+    }
+
+    function getWeekStart(date) {
+        const newDate = new Date(date);
+        newDate.setDate(date.getDate() - date.getDay());
+        return newDate;
+    }
+
+    function isInSameWeek(date1, date2) {
+        const week1 = getWeekStart(date1);
+        const week2 = getWeekStart(date2);
+        return isSameDay(week1, week2);
+    }
+
+    function aggregateDataByPeriod(data, period) {
+        const aggregated = {};
+        
+        data.forEach(entry => {
+            const entryDate = parseDate(entry.date);
+            let key;
+            
+            if (period === 'month') {
+                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}-${entryDate.getDate()}`;
+            } else if (period === 'year') {
+                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}`;
+            } else {
+                key = entry.date;
+            }
+
+            if (!aggregated[key]) {
+                aggregated[key] = {
+                    date: key,
+                    hourlyHours: 0,
+                    performanceHours: 0,
+                    wordCount: 0,
+                    day: entry.day
+                };
+            }
+
+            if (entry.hourlyPay) {
+                aggregated[key].hourlyHours += entry.hours;
+            } else {
+                aggregated[key].performanceHours += entry.hours;
+            }
+        });
+
+        // Aggregate word count data
+        wordCountData.forEach(entry => {
+            const entryDate = parseDate(entry.date);
+            let key;
+            
+            if (period === 'month') {
+                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}-${entryDate.getDate()}`;
+            } else if (period === 'year') {
+                key = `${entryDate.getFullYear()}-${entryDate.getMonth() + 1}`;
+            } else {
+                key = entry.date;
+            }
+
+            if (aggregated[key]) {
+                aggregated[key].wordCount += entry.totalWords;
+            }
+        });
+
+        return Object.values(aggregated);
+    }
+
+    function getChartData() {
+        let filteredData = timeData.filter(entry => {
+            const entryDate = parseDate(entry.date);
+            
+            switch(currentViewType) {
+                case 'weekly':
+                    return isInSameWeek(entryDate, currentDate);
+                case 'monthly':
+                    return isSameMonth(entryDate, currentDate);
+                case 'yearly':
+                    return isSameYear(entryDate, currentDate);
+                default:
+                    return true;
+            }
+        });
+
+        // Aggregate data based on view type
+        const aggregatedData = aggregateDataByPeriod(
+            filteredData, 
+            currentViewType === 'yearly' ? 'year' : 
+            currentViewType === 'monthly' ? 'month' : 'week'
+        );
+
+        // Sort data by date
+        aggregatedData.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+        return {
+            labels: aggregatedData.map(d => {
+                const date = parseDate(d.date);
+                switch(currentViewType) {
+                    case 'yearly':
+                        return new Date(date).toLocaleDateString('en-US', { month: 'short' });
+                    case 'monthly':
+                        return new Date(date).toLocaleDateString('en-US', { day: 'numeric' });
+                    default:
+                        return `${d.date}\n${d.day}`;
+                }
+            }),
+            hourlyHours: aggregatedData.map(d => d.hourlyHours || null),
+            performanceHours: aggregatedData.map(d => d.performanceHours || null),
+            wordCounts: aggregatedData.map(d => d.wordCount || 0)
+        };
+    }
+
     function updateChart() {
         const chartData = getChartData();
         
@@ -63,8 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         callbacks: {
                             label: function(context) {
                                 if (context.dataset.label !== 'Word Count') {
-                                    const day = timeData[context.dataIndex];
-                                    return day ? `${day.formattedTime}` : '';
+                                    return `${context.formattedValue} hours`;
                                 }
                                 return `${context.formattedValue} words`;
                             }
@@ -90,18 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-    }
-
-    function getChartData() {
-        return {
-            labels: timeData.map(d => `${d.date}\n${d.day}`),
-            hourlyHours: timeData.map(d => d.hourlyPay ? d.hours : null),
-            performanceHours: timeData.map(d => !d.hourlyPay ? d.hours : null),
-            wordCounts: timeData.map(d => {
-                const wordCount = wordCountData.find(w => w.date === d.date);
-                return wordCount ? wordCount.totalWords : 0;
-            })
-        };
     }
 
     // Handle view type changes
