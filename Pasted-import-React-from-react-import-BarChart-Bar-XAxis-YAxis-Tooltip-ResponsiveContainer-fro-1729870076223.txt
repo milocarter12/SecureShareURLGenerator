@@ -1,0 +1,138 @@
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
+
+const TimeTrackingDashboard = () => {
+  const timeData = [
+    { date: '10/17', hours: 0.2, day: 'Thu', formattedTime: '0:12', hourlyPay: true },
+    { date: '10/18', hours: 0.2, day: 'Fri', formattedTime: '0:12', hourlyPay: true },
+    { date: '10/19', hours: 3.02, day: 'Sat', formattedTime: '3:01', hourlyPay: true },
+    { date: '10/20', hours: 3, day: 'Sun', formattedTime: '3:00', hourlyPay: true },
+    { date: '10/21', hours: 9.55, day: 'Mon', formattedTime: '9:33', hourlyPay: true },
+    { date: '10/22', hours: 2.33, day: 'Tue', formattedTime: '2:20', hourlyPay: true },
+    { date: '10/23', hours: 4.4, day: 'Wed', formattedTime: '4:24', hourlyPay: true },
+    { date: '10/24', hours: 4.77, day: 'Thu', formattedTime: '4:46', hourlyPay: false },
+    { date: '10/25', hours: 3.02, day: 'Fri', formattedTime: '3:01', hourlyPay: false }
+  ];
+
+  const hourlyRate = 4;
+  const paidHours = 4;
+  const remainingHourlyHours = timeData
+    .filter(day => day.hourlyPay && !['10/24', '10/25'].includes(day.date))
+    .reduce((sum, day) => sum + day.hours, 0) - paidHours;
+  
+  const remainingOwed = remainingHourlyHours * hourlyRate;
+
+  const CustomBar = (props) => {
+    const { x, y, width, height, date } = props;
+    const isTransitionDate = ['10/24', '10/25'].includes(date);
+    return <rect x={x} y={y} width={width} height={height} fill={isTransitionDate ? '#94a3b8' : '#9333ea'} />;
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Time Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={timeData}>
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => `${value}\n${timeData.find(d => d.date === value)?.day}`}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name, props) => {
+                    const day = timeData.find(d => d.hours === value);
+                    return [`${day?.formattedTime} ${!day?.hourlyPay ? '(Performance Based)' : ''}`, 'Time'];
+                  }}
+                />
+                <Bar dataKey="hours" shape={<CustomBar />} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-green-100 p-4 rounded-lg">
+              <div className="text-sm font-medium">Hourly Pay Structure ($4/hour)</div>
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between">
+                  <span>Total Hours Worked (Hourly):</span>
+                  <span className="font-medium">{(remainingHourlyHours + paidHours).toFixed(2)} hours</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Hours Already Paid:</span>
+                  <span className="font-medium text-green-700">{paidHours} hours (${(paidHours * hourlyRate).toFixed(2)})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Remaining Hours to Pay:</span>
+                  <span className="font-medium text-purple-700">{remainingHourlyHours.toFixed(2)} hours</span>
+                </div>
+                <div className="flex justify-between border-t border-green-200 pt-2 mt-2">
+                  <span className="font-bold">Amount Still Owed:</span>
+                  <span className="font-bold">${remainingOwed.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-gray-600 mt-0.5" />
+                <div>
+                  <div className="font-medium">Performance-Based Pay Period</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Hours tracked on Oct 24-25 (7h 47m total) are under the new performance-based structure and not calculated at hourly rate.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Detailed Time Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {timeData.map((day, index) => (
+              <div 
+                key={index} 
+                className={`flex justify-between items-center p-4 rounded-lg ${
+                  day.hourlyPay ? 'bg-purple-50' : 'bg-gray-100'
+                }`}
+              >
+                <div>
+                  <div className="font-medium">{day.day} {day.date}</div>
+                  <div className="text-sm text-gray-600">
+                    {day.formattedTime}
+                    {!day.hourlyPay && " (Performance Based)"}
+                  </div>
+                </div>
+                <div className="text-right">
+                  {day.hourlyPay && (
+                    <div className="font-medium">${(day.hours * hourlyRate).toFixed(2)}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default TimeTrackingDashboard;
