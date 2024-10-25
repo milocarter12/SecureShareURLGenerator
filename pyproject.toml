@@ -10,4 +10,5 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "simple-websocket>=1.1.0",
     "flask-socketio>=5.4.1",
+    "requests>=2.32.3",
 ]

@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 from functools import wraps
 from datetime import datetime
 import json
+import requests
 
 app = Flask(__name__)
 app.secret_key = "a secret key"  # As per blueprint recommendation
@@ -27,6 +28,23 @@ TIME_DATA = [
 # Word count data storage
 WORD_COUNT_DATA = []
 WORD_COUNT_LOGS = []
+
+def get_location_info(ip_address):
+    try:
+        response = requests.get(f'https://ipapi.co/{ip_address}/json/')
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('region') == 'New Jersey':
+                return 'wreck'
+            elif data.get('region') == 'New York':
+                return 'Milo'
+            else:
+                city = data.get('city', 'Unknown City')
+                region = data.get('region', 'Unknown State')
+                return f"{city}, {region}"
+    except Exception:
+        pass
+    return "Unknown Location"
 
 def login_required(f):
     @wraps(f)
@@ -62,14 +80,18 @@ def logout():
 
 @socketio.on('word_count_entry')
 def handle_word_count(data):
-    # Create the entry with timestamp and client IP
+    # Get location information
+    location = get_location_info(request.remote_addr)
+    
+    # Create the entry with timestamp, client IP, and location
     entry = {
         'date': data['date'],
         'totalWords': data['totalWords'],
         'pricePerWord': data['pricePerWord'],
         'totalAmount': data['totalWords'] * data['pricePerWord'],
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'ip_address': request.remote_addr
+        'ip_address': request.remote_addr,
+        'location': location
     }
     
     # Update or add to word count data
@@ -82,6 +104,7 @@ def handle_word_count(data):
     log_entry = {
         'timestamp': entry['timestamp'],
         'ip_address': entry['ip_address'],
+        'location': entry['location'],
         'date': entry['date'],
         'totalWords': entry['totalWords'],
         'totalAmount': entry['totalAmount']
