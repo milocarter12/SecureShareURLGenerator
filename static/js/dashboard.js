@@ -28,10 +28,17 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: chartData.labels,
                 datasets: [{
-                    label: 'Hours',
-                    data: chartData.hours,
-                    backgroundColor: chartData.colors,
-                    borderWidth: 0
+                    label: 'Hourly Pay',
+                    data: chartData.hourlyHours,
+                    backgroundColor: '#9333ea',
+                    borderWidth: 0,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Performance Based',
+                    data: chartData.performanceHours,
+                    backgroundColor: '#94a3b8',
+                    borderWidth: 0,
+                    yAxisID: 'y'
                 }, {
                     label: 'Word Count',
                     data: chartData.wordCounts,
@@ -45,14 +52,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: true
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'rect'
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                if (context.dataset.label === 'Hours') {
+                                if (context.dataset.label !== 'Word Count') {
                                     const day = timeData[context.dataIndex];
-                                    return `${day.formattedTime}${!day.hourlyPay ? ' (Performance Based)' : ''}`;
+                                    return day ? `${day.formattedTime}` : '';
                                 }
                                 return `${context.formattedValue} words`;
                             }
@@ -81,13 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getChartData() {
-        // This is a simplified version - you would need to implement proper date filtering
         return {
             labels: timeData.map(d => `${d.date}\n${d.day}`),
-            hours: timeData.map(d => d.hours),
-            colors: timeData.map(d => 
-                ['10/24', '10/25'].includes(d.date) ? '#94a3b8' : '#9333ea'
-            ),
+            hourlyHours: timeData.map(d => d.hourlyPay ? d.hours : null),
+            performanceHours: timeData.map(d => !d.hourlyPay ? d.hours : null),
             wordCounts: timeData.map(d => {
                 const wordCount = wordCountData.find(w => w.date === d.date);
                 return wordCount ? wordCount.totalWords : 0;
