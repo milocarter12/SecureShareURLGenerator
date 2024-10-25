@@ -1,0 +1,28 @@
+ValueError: Value of 'y' is not the name of a column in 'data_frame'. Expected one of ['datetime_x', 'date', 'hours_x', 'hourlyPay_x', 'formattedTime_x', 'hours_y', 'formattedTime_y', 'hourlyPay_y', 'datetime_y', 'day'] but received: hours
+Traceback:
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 88, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 579, in code_to_exec
+    exec(code, module.__dict__)
+File "/home/runner/SecureShareURLGenerator/streamlit_app.py", line 214, in <module>
+    main()
+File "/home/runner/SecureShareURLGenerator/streamlit_app.py", line 211, in main
+    dashboard()
+File "/home/runner/SecureShareURLGenerator/streamlit_app.py", line 177, in dashboard
+    st.plotly_chart(create_time_chart(df), use_container_width=True)
+                    ^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/SecureShareURLGenerator/streamlit_app.py", line 117, in create_time_chart
+    fig = px.bar(
+          ^^^^^^^
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/plotly/express/_chart_types.py", line 373, in bar
+    return make_figure(
+           ^^^^^^^^^^^^
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/plotly/express/_core.py", line 2117, in make_figure
+    args = build_dataframe(args, constructor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/plotly/express/_core.py", line 1513, in build_dataframe
+    df_output, wide_id_vars = process_args_into_dataframe(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/SecureShareURLGenerator/.pythonlibs/lib/python3.11/site-packages/plotly/express/_core.py", line 1234, in process_args_into_dataframe
+    raise ValueError(err_msg)

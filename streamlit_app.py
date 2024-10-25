@@ -97,6 +97,14 @@ def filter_data_by_period(df):
                      on=['date'], 
                      how='left')
     
+    # Rename columns to remove suffixes
+    result = result.rename(columns={
+        'hours_x': 'hours',
+        'hourlyPay_x': 'hourlyPay',
+        'formattedTime_x': 'formattedTime',
+        'datetime_x': 'datetime'
+    })
+    
     # Fill missing values
     result = result.fillna({
         'hours': 0,
@@ -104,9 +112,9 @@ def filter_data_by_period(df):
         'formattedTime': '0:00'
     })
     
-    # Use the day_x column from date_range_df for consistent day names
+    # Use the day from date_range_df
     result['day'] = result['day_x']
-    result = result.drop(['day_x', 'day_y'], axis=1)
+    result = result.drop(['day_x', 'day_y', 'datetime_y', 'hours_y', 'hourlyPay_y', 'formattedTime_y'], axis=1)
     
     return result
 
