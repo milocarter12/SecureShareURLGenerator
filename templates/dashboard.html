@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Time Overview Card -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Time Overview</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Summary Card -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Payment Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="bg-success bg-opacity-10 p-4 rounded mb-4">
+                    <h6>Hourly Pay Structure ($4/hour)</h6>
+                    <div id="paymentSummary"></div>
+                </div>
+                <div class="bg-secondary bg-opacity-10 p-4 rounded">
+                    <div class="d-flex gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <div>
+                            <h6 class="mb-1">Performance-Based Pay Period</h6>
+                            <p class="text-muted small mb-0">Hours tracked on Oct 24-25 (7h 47m total) are under the new performance-based structure and not calculated at hourly rate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Time Breakdown -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Detailed Time Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div id="timeBreakdown"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pass time data to JavaScript
+    const timeData = {{ time_data|tojson|safe }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

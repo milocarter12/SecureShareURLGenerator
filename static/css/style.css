@@ -1,0 +1,13 @@
+.time-entry {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+}
+
+.time-entry.hourly {
+    background-color: var(--bs-purple-bg-subtle);
+}
+
+.time-entry.performance {
+    background-color: var(--bs-secondary-bg-subtle);
+}
