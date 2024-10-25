@@ -61,6 +61,17 @@ def format_time_period():
     else:
         return date.strftime('%Y')
 
+def generate_date_range(start_date, end_date):
+    dates = pd.date_range(start=start_date, end=end_date)
+    return pd.DataFrame({
+        'datetime': dates,
+        'date': dates.strftime('%m/%d'),
+        'hours': 0,
+        'hourlyPay': True,
+        'day': dates.strftime('%a'),
+        'formattedTime': '0:00'
+    })
+
 def filter_data_by_period(df):
     current_date = st.session_state.current_date
     df['datetime'] = pd.to_datetime(df['date'] + '/2024', format='%m/%d/%Y')
@@ -68,20 +79,36 @@ def filter_data_by_period(df):
     if st.session_state.view_type == 'weekly':
         start_date = current_date - timedelta(days=current_date.weekday())
         end_date = start_date + timedelta(days=6)
-        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
     elif st.session_state.view_type == 'monthly':
         start_date = current_date.replace(day=1)
         if current_date.month == 12:
             end_date = current_date.replace(year=current_date.year + 1, month=1, day=1) - timedelta(days=1)
         else:
             end_date = current_date.replace(month=current_date.month + 1, day=1) - timedelta(days=1)
-        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
     else:  # yearly
         start_date = current_date.replace(month=1, day=1)
         end_date = current_date.replace(month=12, day=31)
-        mask = (df['datetime'] >= start_date) & (df['datetime'] <= end_date)
     
-    return df[mask]
+    # Generate complete date range
+    date_range_df = generate_date_range(start_date, end_date)
+    
+    # Merge with existing data, using 0 for missing values
+    result = pd.merge(date_range_df, df, 
+                     on=['date'], 
+                     how='left')
+    
+    # Fill missing values
+    result = result.fillna({
+        'hours': 0,
+        'hourlyPay': True,
+        'formattedTime': '0:00'
+    })
+    
+    # Use the day_x column from date_range_df for consistent day names
+    result['day'] = result['day_x']
+    result = result.drop(['day_x', 'day_y'], axis=1)
+    
+    return result
 
 def create_time_chart(df):
     # Filter data based on current view
@@ -96,7 +123,14 @@ def create_time_chart(df):
         color_discrete_map={True: '#9333ea', False: '#94a3b8'},
         title='Time Overview'
     )
-    fig.update_layout(showlegend=False)
+    
+    # Update layout to show all x-axis labels
+    fig.update_layout(
+        showlegend=False,
+        xaxis_tickangle=-45,
+        xaxis={'tickmode': 'array', 'ticktext': filtered_df['date'] + '\n' + filtered_df['day']}
+    )
+    
     return fig
 
 def dashboard():
