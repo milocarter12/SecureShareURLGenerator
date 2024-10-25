@@ -9,8 +9,62 @@
                 <h5 class="card-title mb-0">Time Overview</h5>
             </div>
             <div class="card-body">
+                <div class="chart-controls">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <select class="form-select" id="viewType">
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-outline-secondary" id="prevPeriod">&lt; Previous</button>
+                        </div>
+                        <div class="col-auto">
+                            <span id="periodLabel" class="fw-bold"></span>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-outline-secondary" id="nextPeriod">Next &gt;</button>
+                        </div>
+                    </div>
+                </div>
                 <div style="height: 300px;">
                     <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Word Count Tracking -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Word Count Tracking</h5>
+            </div>
+            <div class="card-body">
+                <div class="word-count-form">
+                    <form id="wordCountForm" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="wordCountDate" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total Words</label>
+                            <input type="number" class="form-control" id="totalWords" required min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Price per Word ($)</label>
+                            <input type="number" class="form-control" id="pricePerWord" required min="0" step="0.001">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Add Word Count</button>
+                        </div>
+                    </form>
+                    <div class="mt-3">
+                        <h6>Today's Word Count Summary</h6>
+                        <div id="wordCountSummary" class="mt-2"></div>
+                    </div>
                 </div>
             </div>
         </div>
