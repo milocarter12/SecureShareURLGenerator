@@ -2,6 +2,7 @@ import streamlit.web.bootstrap
 import os
 
 if __name__ == "__main__":
+    # Set environment variables for server configuration
     os.environ['STREAMLIT_SERVER_PORT'] = '5000'
     os.environ['STREAMLIT_SERVER_ADDRESS'] = '0.0.0.0'
     os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'
