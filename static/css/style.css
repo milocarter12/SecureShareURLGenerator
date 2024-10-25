@@ -40,3 +40,18 @@
 .word-count-form h6 {
     color: var(--bs-gray-200);
 }
+
+.activity-log {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-log-entry {
+    font-size: 0.9rem;
+}
+
+.activity-log-entry:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}

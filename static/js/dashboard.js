@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const socket = io();
     const hourlyRate = 4;
     const paidHours = 4;
     let currentViewType = 'weekly';
     let currentDate = new Date();
-    let wordCountData = [];
 
     // Calculate remaining hours and amount owed
     const remainingHourlyHours = timeData
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Handle word count form submission
+    // Handle word count form submission with WebSocket
     document.getElementById('wordCountForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const date = document.getElementById('wordCountDate').value;
@@ -175,17 +175,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const entry = {
             date: formatDate(new Date(date)),
             totalWords: totalWords,
-            pricePerWord: pricePerWord,
-            totalAmount: totalWords * pricePerWord
+            pricePerWord: pricePerWord
         };
 
-        // Remove any existing entry for the same date
-        wordCountData = wordCountData.filter(item => item.date !== entry.date);
-        wordCountData.push(entry);
+        // Emit the entry to the server
+        socket.emit('word_count_entry', entry);
+        this.reset();
+    });
 
+    // Handle WebSocket updates
+    socket.on('word_count_update', function(data) {
+        wordCountData = data.wordCountData;
+        wordCountLogs = data.logs;
         updateChart();
         updateWordCountSummary();
-        this.reset();
+        updateWordCountLogs();
     });
 
     function formatDate(date) {
@@ -219,10 +223,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function updateWordCountLogs() {
+        const logsContainer = document.getElementById('wordCountLogs');
+        logsContainer.innerHTML = wordCountLogs.map(log => `
+            <div class="activity-log-entry border-bottom pb-2 mb-2">
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">${log.timestamp}</small>
+                    <small class="text-muted">${log.ip_address}</small>
+                </div>
+                <div class="mt-1">
+                    <strong>${log.totalWords}</strong> words added for ${log.date}
+                    <div class="text-success">$${log.totalAmount.toFixed(2)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
     // Initialize components
     updatePeriodLabel();
     updateChart();
     updateWordCountSummary();
+    updateWordCountLogs();
 
     // Render Payment Summary
     const paymentSummary = document.getElementById('paymentSummary');

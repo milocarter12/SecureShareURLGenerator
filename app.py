@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_socketio import SocketIO, emit
 from functools import wraps
+from datetime import datetime
+import json
 
 app = Flask(__name__)
 app.secret_key = "a secret key"  # As per blueprint recommendation
+socketio = SocketIO(app)
 
 # Hardcoded password as specified
 PASSWORD = "3987q89deb789dnq98a8dnal2neoiedn1209e"
@@ -19,6 +23,10 @@ TIME_DATA = [
     {"date": "10/24", "hours": 4.77, "day": "Thu", "formattedTime": "4:46", "hourlyPay": False},
     {"date": "10/25", "hours": 3.02, "day": "Fri", "formattedTime": "3:01", "hourlyPay": False}
 ]
+
+# Word count data storage
+WORD_COUNT_DATA = []
+WORD_COUNT_LOGS = []
 
 def login_required(f):
     @wraps(f)
@@ -45,9 +53,46 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', time_data=TIME_DATA)
+    return render_template('dashboard.html', time_data=TIME_DATA, word_count_data=WORD_COUNT_DATA, word_count_logs=WORD_COUNT_LOGS)
 
 @app.route('/logout')
 def logout():
     session.pop('authenticated', None)
     return redirect(url_for('login'))
+
+@socketio.on('word_count_entry')
+def handle_word_count(data):
+    # Create the entry with timestamp and client IP
+    entry = {
+        'date': data['date'],
+        'totalWords': data['totalWords'],
+        'pricePerWord': data['pricePerWord'],
+        'totalAmount': data['totalWords'] * data['pricePerWord'],
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'ip_address': request.remote_addr
+    }
+    
+    # Update or add to word count data
+    existing_entry = next((item for item in WORD_COUNT_DATA if item['date'] == entry['date']), None)
+    if existing_entry:
+        WORD_COUNT_DATA.remove(existing_entry)
+    WORD_COUNT_DATA.append(entry)
+    
+    # Add to logs
+    log_entry = {
+        'timestamp': entry['timestamp'],
+        'ip_address': entry['ip_address'],
+        'date': entry['date'],
+        'totalWords': entry['totalWords'],
+        'totalAmount': entry['totalAmount']
+    }
+    WORD_COUNT_LOGS.append(log_entry)
+    
+    # Broadcast the updates to all clients
+    emit('word_count_update', {
+        'wordCountData': WORD_COUNT_DATA,
+        'logs': WORD_COUNT_LOGS
+    }, broadcast=True)
+
+if __name__ == '__main__':
+    socketio.run(app, host="0.0.0.0", port=5000)
