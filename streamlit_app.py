@@ -40,7 +40,7 @@ def login():
     if st.button("Login"):
         if password == PASSWORD:
             st.session_state.authenticated = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Invalid password")
 
@@ -109,7 +109,7 @@ def dashboard():
     with col5:
         if st.button("Logout"):
             st.session_state.authenticated = False
-            st.experimental_rerun()
+            st.rerun()
 
     # Convert time data to DataFrame
     df = pd.DataFrame(TIME_DATA)
