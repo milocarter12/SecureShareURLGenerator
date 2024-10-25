@@ -34,6 +34,8 @@ if 'current_date' not in st.session_state:
     st.session_state.current_date = datetime.now()
 if 'payment_history' not in st.session_state:
     st.session_state.payment_history = []
+if 'time_data' not in st.session_state:
+    st.session_state.time_data = TIME_DATA.copy()
 
 def login():
     st.title("Time Tracking Dashboard")
@@ -46,7 +48,7 @@ def login():
             st.error("Invalid password")
 
 def calculate_remaining_hours(paid_hours):
-    hourly_entries = [entry for entry in TIME_DATA if entry['hourlyPay']]
+    hourly_entries = [entry for entry in st.session_state.time_data if entry['hourlyPay']]
     total_hours = sum(entry['hours'] for entry in hourly_entries)
     remaining_hours = max(0, total_hours - paid_hours)
     return total_hours, remaining_hours
@@ -159,7 +161,7 @@ def dashboard():
             st.rerun()
 
     # Convert time data to DataFrame
-    df = pd.DataFrame(TIME_DATA)
+    df = pd.DataFrame(st.session_state.time_data)
     
     # Time chart
     st.plotly_chart(create_time_chart(df), use_container_width=True)
@@ -195,6 +197,46 @@ def dashboard():
                 st.success(f"Payment recorded: {payment_amount} hours (${payment_amount * HOURLY_RATE:.2f})")
                 st.rerun()
 
+        # Add new time entry
+        st.markdown("##### Add Time Entry")
+        with st.form("add_time_entry"):
+            cols = st.columns([2, 2, 1])
+            with cols[0]:
+                entry_date = st.date_input(
+                    "Date",
+                    value=datetime.now(),
+                    min_value=datetime(2024, 1, 1),
+                    max_value=datetime(2024, 12, 31)
+                )
+            with cols[1]:
+                hours = st.number_input(
+                    "Hours Worked",
+                    min_value=0.0,
+                    max_value=24.0,
+                    value=0.0,
+                    step=0.25,
+                    help="Enter the number of hours worked (in decimal format)"
+                )
+            with cols[2]:
+                hourly_pay = st.checkbox("Hourly Pay", value=True)
+            
+            submitted = st.form_submit_button("Add Entry")
+            if submitted and hours > 0:
+                # Format the entry
+                formatted_hours = f"{int(hours)}:{int((hours % 1) * 60):02d}"
+                new_entry = {
+                    "date": entry_date.strftime("%m/%d"),
+                    "hours": hours,
+                    "day": entry_date.strftime("%a"),
+                    "formattedTime": formatted_hours,
+                    "hourlyPay": hourly_pay
+                }
+                
+                # Add to time data
+                st.session_state.time_data.append(new_entry)
+                st.success(f"Added {hours} hours for {new_entry['date']}")
+                st.rerun()
+
         # Visual payment progress
         st.markdown("##### Payment Progress")
         paid_hours = sum(payment['amount'] for payment in st.session_state.payment_history)
@@ -227,7 +269,7 @@ def dashboard():
 
     with col2:
         st.subheader("Detailed Time Breakdown")
-        for entry in TIME_DATA:
+        for entry in st.session_state.time_data:
             with st.container():
                 cols = st.columns([3, 2])
                 with cols[0]:
