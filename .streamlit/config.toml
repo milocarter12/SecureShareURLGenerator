@@ -4,13 +4,15 @@ address = "0.0.0.0"
 headless = true
 enableCORS = true
 enableXsrfProtection = true
+baseUrlPath = ""
+maxUploadSize = 5
 
 [theme]
-base="dark"
-primaryColor="#9333ea"
-backgroundColor="#212529"
-secondaryBackgroundColor="#343a40"
-textColor="#f8f9fa"
+base = "dark"
+primaryColor = "#9333ea"
+backgroundColor = "#212529"
+secondaryBackgroundColor = "#343a40"
+textColor = "#f8f9fa"
 
 [browser]
 gatherUsageStats = false
