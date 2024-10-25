@@ -24,7 +24,6 @@ TIME_DATA = [
 
 # Constants
 HOURLY_RATE = 4
-PAID_HOURS = 4
 
 # Initialize session state
 if 'authenticated' not in st.session_state:
@@ -33,6 +32,8 @@ if 'view_type' not in st.session_state:
     st.session_state.view_type = 'weekly'
 if 'current_date' not in st.session_state:
     st.session_state.current_date = datetime.now()
+if 'payment_history' not in st.session_state:
+    st.session_state.payment_history = []
 
 def login():
     st.title("Time Tracking Dashboard")
@@ -47,7 +48,7 @@ def login():
 def calculate_remaining_hours(paid_hours):
     hourly_entries = [entry for entry in TIME_DATA if entry['hourlyPay']]
     total_hours = sum(entry['hours'] for entry in hourly_entries)
-    remaining_hours = total_hours - paid_hours
+    remaining_hours = max(0, total_hours - paid_hours)
     return total_hours, remaining_hours
 
 def format_time_period():
@@ -65,7 +66,6 @@ def filter_data_by_period(df):
     current_date = st.session_state.current_date
     df['datetime'] = pd.to_datetime(df['date'] + '/2024', format='%m/%d/%Y')
     
-    # Generate date range based on view type
     if st.session_state.view_type == 'weekly':
         start_date = current_date - timedelta(days=current_date.weekday())
         end_date = start_date + timedelta(days=6)
@@ -76,7 +76,6 @@ def filter_data_by_period(df):
         start_date = current_date.replace(month=1, day=1)
         end_date = current_date.replace(month=12, day=31)
     
-    # Create complete date range DataFrame
     dates = pd.date_range(start=start_date, end=end_date)
     date_range_df = pd.DataFrame({
         'date': dates.strftime('%m/%d'),
@@ -86,7 +85,6 @@ def filter_data_by_period(df):
         'formattedTime': '0:00'
     })
     
-    # Merge with existing data
     result = pd.merge(
         date_range_df,
         df[['date', 'hours', 'hourlyPay', 'formattedTime']],
@@ -94,12 +92,10 @@ def filter_data_by_period(df):
         how='left'
     )
     
-    # Use coalesce to prefer existing data over defaults
     result['hours'] = result['hours_y'].fillna(result['hours_x'])
     result['hourlyPay'] = result['hourlyPay_y'].fillna(result['hourlyPay_x'])
     result['formattedTime'] = result['formattedTime_y'].fillna(result['formattedTime_x'])
     
-    # Drop unnecessary columns and reset index
     result = result.drop(columns=[col for col in result.columns if col.endswith('_x') or col.endswith('_y')])
     
     return result
@@ -173,41 +169,61 @@ def dashboard():
     
     with col1:
         st.subheader("Payment Summary")
-        
-        # Add number input for paid hours
-        paid_hours = st.number_input(
-            "Enter number of hours already paid:", 
-            min_value=0.0, 
-            value=float(PAID_HOURS),
-            step=0.5,
-            help="Update this value when you make payments"
+        total_hours, remaining_hours = calculate_remaining_hours(
+            sum(payment['amount'] for payment in st.session_state.payment_history)
         )
         
-        total_hours, remaining_hours = calculate_remaining_hours(paid_hours)
+        # Payment calculator
+        st.markdown("##### Make a Payment")
+        payment_amount = st.number_input(
+            "Hours to pay:",
+            min_value=0.0,
+            max_value=remaining_hours,
+            value=remaining_hours,
+            step=0.5,
+            help="Enter the number of hours you want to pay for"
+        )
         
-        summary_container = st.container()
-        with summary_container:
-            st.markdown("##### Hourly Pay Structure ($4/hour)")
+        if st.button("Submit Payment"):
+            if payment_amount > 0:
+                payment = {
+                    'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                    'amount': payment_amount,
+                    'total': payment_amount * HOURLY_RATE
+                }
+                st.session_state.payment_history.append(payment)
+                st.success(f"Payment recorded: {payment_amount} hours (${payment_amount * HOURLY_RATE:.2f})")
+                st.rerun()
+
+        # Visual payment progress
+        st.markdown("##### Payment Progress")
+        paid_hours = sum(payment['amount'] for payment in st.session_state.payment_history)
+        
+        # Progress bar showing paid vs total hours
+        if total_hours > 0:
+            progress = min(1.0, paid_hours / total_hours)
+            st.progress(progress)
             
-            # Total hours
-            st.markdown(f"**Total Hours Worked:** {total_hours:.2f} hours (${total_hours * HOURLY_RATE:.2f})")
-            
-            # Paid amount (in green)
-            st.markdown(f"<div style='color: #28a745'>**✓ Hours Already Paid:** {paid_hours} hours (${paid_hours * HOURLY_RATE:.2f})</div>", unsafe_allow_html=True)
-            
-            # Remaining amount (in red)
-            remaining_hours = total_hours - paid_hours
-            st.markdown(f"<div style='color: #dc3545'>**○ Remaining Hours to Pay:** {remaining_hours:.2f} hours</div>", unsafe_allow_html=True)
-            
-            # Total remaining amount
-            st.markdown("---")
-            st.markdown(f"<div style='color: #dc3545; font-size: 1.2em'>**Amount Still Owed:** ${remaining_hours * HOURLY_RATE:.2f}</div>", unsafe_allow_html=True)
-            
-            # Payment progress bar
-            if total_hours > 0:
-                progress = (paid_hours / total_hours) * 100
-                st.progress(progress / 100)
-                st.markdown(f"Payment Progress: {progress:.1f}%")
+            # Color-coded hour breakdown
+            st.markdown(f'''
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <div style="color: #28a745">✓ Paid: {paid_hours:.2f}h (${paid_hours * HOURLY_RATE:.2f})</div>
+                <div style="color: #dc3545">○ Remaining: {remaining_hours:.2f}h (${remaining_hours * HOURLY_RATE:.2f})</div>
+            </div>
+            ''', unsafe_allow_html=True)
+
+        # Payment history log
+        st.markdown("##### Payment History")
+        if not st.session_state.payment_history:
+            st.info("No payments recorded yet")
+        else:
+            for payment in reversed(st.session_state.payment_history):
+                st.markdown(f'''
+                <div style="padding: 10px; border-left: 3px solid #28a745; margin-bottom: 10px;">
+                    <div style="color: #666; font-size: 0.8em;">{payment['date']}</div>
+                    <div>{payment['amount']} hours paid (${payment['total']:.2f})</div>
+                </div>
+                ''', unsafe_allow_html=True)
 
     with col2:
         st.subheader("Detailed Time Breakdown")
