@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 from functools import wraps
 from datetime import datetime
 import json
+import requests
 
 app = Flask(__name__)
 app.secret_key = "a secret key"  # As per blueprint recommendation
@@ -27,6 +28,21 @@ TIME_DATA = [
 # Word count data storage
 WORD_COUNT_DATA = []
 WORD_COUNT_LOGS = []
+
+def get_location_from_ip(ip):
+    try:
+        if ip in ['127.0.0.1', 'localhost', '0.0.0.0']:
+            return "Local Development"
+            
+        response = requests.get(f'https://ipapi.co/{ip}/json/')
+        if response.status_code == 200:
+            data = response.json()
+            city = data.get('city', 'Unknown City')
+            country = data.get('country_name', 'Unknown Country')
+            return f"{city}, {country}"
+    except:
+        pass
+    return "Unknown Location"
 
 def login_required(f):
     @wraps(f)
@@ -62,14 +78,15 @@ def logout():
 
 @socketio.on('word_count_entry')
 def handle_word_count(data):
-    # Create the entry with timestamp and client IP
+    # Create the entry with timestamp and location
+    location = get_location_from_ip(request.remote_addr)
     entry = {
         'date': data['date'],
         'totalWords': data['totalWords'],
         'pricePerWord': data['pricePerWord'],
         'totalAmount': data['totalWords'] * data['pricePerWord'],
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'ip_address': request.remote_addr
+        'location': location
     }
     
     # Update or add to word count data
@@ -81,7 +98,7 @@ def handle_word_count(data):
     # Add to logs
     log_entry = {
         'timestamp': entry['timestamp'],
-        'ip_address': entry['ip_address'],
+        'location': entry['location'],
         'date': entry['date'],
         'totalWords': entry['totalWords'],
         'totalAmount': entry['totalAmount']
@@ -95,4 +112,4 @@ def handle_word_count(data):
     }, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, use_reloader=True, log_output=True)

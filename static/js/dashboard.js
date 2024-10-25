@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="activity-log-entry border-bottom pb-2 mb-2">
                 <div class="d-flex justify-content-between">
                     <small class="text-muted">${log.timestamp}</small>
-                    <small class="text-muted">${log.ip_address}</small>
+                    <small class="text-muted">${log.location}</small>
                 </div>
                 <div class="mt-1">
                     <strong>${log.totalWords}</strong> words added for ${log.date}
